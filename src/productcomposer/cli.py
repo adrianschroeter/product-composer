@@ -229,6 +229,7 @@ def create_tree(outdir, product_base_dir, yml, pool, flavor, vcs=None, disturl=N
         os.mkdir(outdir)
 
     maindir = outdir + '/' + product_base_dir
+    sourcedir = debugdir = None
     if not os.path.exists(maindir):
         os.mkdir(maindir)
 
@@ -238,18 +239,18 @@ def create_tree(outdir, product_base_dir, yml, pool, flavor, vcs=None, disturl=N
             sourcedir = outdir + '/' + product_base_dir + '-Source'
             os.mkdir(sourcedir)
             workdirectories.append(sourcedir)
-        elif yml['source'] == 'drop':
-            sourcedir = None
-        elif yml['source'] != 'include':
+        elif yml['source'] == 'include':
+            sourcedir = maindir
+        elif yml['source'] != 'drop':
             die("Bad source option, must be either 'include', 'split' or 'drop'")
     if "debug" in yml:
         if yml['debug'] == 'split':
             debugdir = outdir + '/' + product_base_dir + '-Debug'
             os.mkdir(debugdir)
             workdirectories.append(debugdir)
-        elif yml['debug'] == 'drop':
-            debugdir = None
-        elif yml['debug'] != 'include':
+        elif yml['debug'] == 'include':
+            debugdir = maindir
+        elif yml['debug'] != 'drop':
             die("Bad debug option, must be either 'include', 'split' or 'drop'")
 
     for arch in yml['architectures']:
