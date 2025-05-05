@@ -184,6 +184,8 @@ def parse_yaml(filename, flavor):
                     'product-type', 'product_directory_name',
                     'build_options', 'source', 'debug', 'repodata']:
             if tag in f:
+                if tag == 'name' or tag == 'version':
+		    warn(f"Overwriting product {tag}! Please consider to use a seperate product definition instead! We may block this in future.")
                 yml[tag] = f[tag]
         if 'iso' in f:
             if not 'iso' in yml:
