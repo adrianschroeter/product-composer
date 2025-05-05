@@ -872,15 +872,14 @@ def run_createrepo(rpmdir, yml, content=[], repos=[]):
     cr = CreaterepoWrapper(directory=".")
     cr.distro = product_summary
     cr.cpeid = f"cpe:{product_type}:{yml['vendor']}:{yml['name']}:{yml['version']}"
+    cr.cpeid = cr.cpeid + ":"
     if 'update' in yml:
-        cr.cpeid = cr.cpeid + f":{yml['update']}"
-        if 'edition' in yml:
-            cr.cpeid = cr.cpeid + f":{yml['edition']}"
-    elif 'edition' in yml:
+        cr.cpeid = cr.cpeid + yml['update']
+    cr.cpeid = cr.cpeid + ":"
+    if 'edition' in yml:
         cr.cpeid = cr.cpeid + f"::{yml['edition']}"
+    cr.cpeid = cr.cpeid.rstrip(':')
     cr.repos = repos
-# cr.split = True
-    # cr.baseurl = "media://"
     cr.content = content
     cr.excludes = ["boot"]
     # default case including all architectures. Unique URL for all of them.
