@@ -276,3 +276,11 @@ def create_tree(outdir, product_base_dir, yml, pool, flavor, tree_report, suppor
             repodatadir = workdir + "/repodata"
             if os.path.exists(repodatadir):
                 shutil.rmtree(repodatadir)
+
+    # drop everything except selected meta data. intended for test builds
+    if 'discard_artifacts' not in yml['build_options']:
+        for workdir in workdirectories:
+            for suffix in [ "", ".iso", ".install.iso" ]:
+                if os.path.exists(workdir + suffix):
+                    shutil.rmtree(workdir + suffix)
+
