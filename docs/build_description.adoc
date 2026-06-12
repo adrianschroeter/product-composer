@@ -67,6 +67,13 @@ These rpm packages need to provide these files below
 Currently it gets only extracted to the first/main medium,
 but not on source or debug media.
 
+When the build produces an agama-based iso (via `iso.base`),
+files shipped at `/usr/lib/skelcd/CD0/` in the unpacked rpms
+are placed at the *root* of the resulting iso, alongside the
+agama installer layout. This is the right place for files
+that the user should see immediately when mounting the
+medium, such as a README.
+
 === packagesets
 
 The packagesets definitions. A packageset lists rpm names

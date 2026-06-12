@@ -4,10 +4,11 @@ import glob
 from .. import defaults
 from ..utils.loggerutils import (note, die)
 from ..utils.runhelper import run_helper
+from ..utils.rpmutils import unpack_meta_rpms
 from ..utils.cryptoutils import create_sha_for
 from ..config import (verbose_level, ISO_PREPARER)
 
-def create_agama_iso(outdir, isoconf, build_options, pool, workdir, application_id, arch):
+def create_agama_iso(outdir, isoconf, build_options, pool, workdir, application_id, arch, yml, flavor):
     verbose = True if verbose_level > 0 else False
     base = isoconf['base']
     if verbose:
@@ -31,6 +32,8 @@ def create_agama_iso(outdir, isoconf, build_options, pool, workdir, application_
     # create new iso
     tempdir = f"{outdir}/mksusecd"
     os.mkdir(tempdir)
+    # CD0 unpack: files at /usr/lib/skelcd/CD0/ in unpacked rpms land at iso root
+    unpack_meta_rpms(tempdir, yml, pool, arch, flavor, medium=0)
     if 'base_skip_packages' not in build_options:
         args = ['cp', '-al', workdir, f"{tempdir}/install"]
         run_helper(args, failmsg="add tree to agama image")
