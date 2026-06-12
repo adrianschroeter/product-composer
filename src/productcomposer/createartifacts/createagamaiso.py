@@ -8,8 +8,10 @@ from ..utils.rpmutils import unpack_meta_rpms
 from ..utils.cryptoutils import create_sha_for
 from ..config import (verbose_level, ISO_PREPARER)
 
-def create_agama_iso(outdir, isoconf, build_options, pool, workdir, application_id, arch, yml, flavor):
+def create_agama_iso(outdir, yml, pool, workdir, application_id, arch, flavor):
     verbose = True if verbose_level > 0 else False
+    isoconf = yml['iso']
+    build_options = yml['build_options']
     base = isoconf['base']
     if verbose:
         note(f"Looking for baseiso-{base} rpm on {arch}")
