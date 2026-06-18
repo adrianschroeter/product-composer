@@ -298,9 +298,12 @@ def create_tree(outdir, product_base_dir, yml, pool, flavor, tree_report, suppor
     if 'discard_artifacts' in yml['build_options']:
         for workdir in workdirectories:
             for suffix in ["", ".iso", ".install.iso"]:
-                if os.path.exists(workdir + suffix):
-                    warn("discard_artifacts enabled, removing " + workdir + suffix)
+                if os.path.isdir(workdir + suffix):
+                    warn("discard_artifacts enabled, removing directory " + workdir + suffix)
                     shutil.rmtree(workdir + suffix)
+                elif os.path.exists(workdir + suffix):
+                    warn("discard_artifacts enabled, removing file " + workdir + suffix)
+                    os.unlink(workdir + suffix)
         return
 
     # drop just the entire tree, we have the iso already
