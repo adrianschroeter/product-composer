@@ -132,7 +132,8 @@ Define support status level for the packages listed in
 packages. Valid support levels are l3, l2, unsupported.
 However these are handled as strings. If the string starts
 with a "=", it overrides any previously set support status
-from inherited package sets.
+from inherited package sets and entries from supportstatus.txt
+when writing repodata.
 
 
 === Details
@@ -455,4 +456,3 @@ still being able to identify the filtering for a specific product.
 
 The current default is to include maintenance updates under embargo. This option can
 be set to abort when an embargo date is in future.
-
