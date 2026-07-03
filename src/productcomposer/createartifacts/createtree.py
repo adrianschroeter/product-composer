@@ -61,6 +61,7 @@ def create_tree(outdir, product_base_dir, yml, pool, flavor, tree_report, suppor
             if 'take_all_available_versions' not in yml['build_options']:
                 die("updateinfo information will be used, but take_all_available_versions is not enabled. Either use take_all_available_versions or skip_updateinfos as build_option.")
 
+    forced_supportstatus = set()
     for arch in yml['architectures']:
         note(f"Linking rpms for {arch}")
         required_cpeid = get_cpeid(yml)
@@ -68,7 +69,7 @@ def create_tree(outdir, product_base_dir, yml, pool, flavor, tree_report, suppor
             # handle the special case for legacy x86 builds where some additional i686 rpms 
             # get added, but it is still handled as a single common i586 architecture.
             required_cpeid = None
-        link_rpms_to_tree(maindir, yml, pool, arch, flavor, tree_report, supporstatus, supportstatus_override, debugdir, sourcedir, required_cpeid)
+        link_rpms_to_tree(maindir, yml, pool, arch, flavor, tree_report, supporstatus, supportstatus_override, debugdir, sourcedir, required_cpeid, forced_supportstatus)
 
     for arch in yml['architectures']:
         note(f"Unpack rpms for {arch}")
@@ -320,4 +321,3 @@ def create_tree(outdir, product_base_dir, yml, pool, flavor, tree_report, suppor
             if os.path.exists(repodatadir):
                 note(f"Removing {repodatadir}")
                 shutil.rmtree(repodatadir)
-

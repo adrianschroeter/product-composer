@@ -7,8 +7,9 @@ import rpm
 
 
 class PkgSelect:
-    def __init__(self, spec, supportstatus=None):
+    def __init__(self, spec, supportstatus=None, supportstatus_forced=False):
         self.supportstatus = supportstatus
+        self.supportstatus_forced = supportstatus_forced and supportstatus is not None
         match = re.match(r'([^><=]*)([><=]=?)(.*)', spec.replace(' ', ''))
         if match:
             self.name = match.group(1)
@@ -65,6 +66,20 @@ class PkgSelect:
     def _throw_unsupported_intersect(self, other):
         raise RuntimeError(f"unsupported intersect operation: {self}, {other}")
 
+    def _merge_supportstatus(self, other):
+        if self.supportstatus_forced:
+            return self.supportstatus, True
+        if other.supportstatus_forced:
+            return other.supportstatus, True
+        if self.supportstatus is not None:
+            return self.supportstatus, False
+        return other.supportstatus, False
+
+    def _copy_with_merged_supportstatus(self, other):
+        out = self.copy()
+        out.supportstatus, out.supportstatus_forced = self._merge_supportstatus(other)
+        return out
+
     def sub(self, other):
         if self.name != other.name:
             return self
@@ -95,15 +110,18 @@ class PkgSelect:
         if self.name != other.name:
             return None
         if other.op is None:
-            return self
+            return self._copy_with_merged_supportstatus(other)
         if self.op is None:
-            return other
+            return other._copy_with_merged_supportstatus(self)
         cmp = self._cmp_evr(other)
         if cmp == 0:
             if self.release is not None or other.release is None:
                 out = self.copy()
+                merge_other = other
             else:
                 out = other.copy()
+                merge_other = self
+            out.supportstatus, out.supportstatus_forced = out._merge_supportstatus(merge_other)
             out.op = PkgSelect._intersect_ops(self.op, other.op)
             if out.op == '':
                 if (self.release is not None and other.release is None) or (other.release is not None and self.release is None):
@@ -112,16 +130,16 @@ class PkgSelect:
             return out
         elif cmp < 0:
             if '>' in self.op and '<' not in other.op:
-                return other
+                return other._copy_with_merged_supportstatus(self)
             if '<' in other.op and '>' not in self.op:
-                return self
+                return self._copy_with_merged_supportstatus(other)
             if '<' not in other.op and '>' not in self.op:
                 return None
         elif cmp > 0:
             if '>' in other.op and '<' not in self.op:
-                return self
+                return self._copy_with_merged_supportstatus(other)
             if '<' in self.op and '>' not in other.op:
-                return other
+                return other._copy_with_merged_supportstatus(self)
             if '<' not in self.op and '>' not in other.op:
                 return None
         self._throw_unsupported_intersect(other)
@@ -133,6 +151,7 @@ class PkgSelect:
         out.version = self.version
         out.release = self.release
         out.supportstatus = self.supportstatus
+        out.supportstatus_forced = self.supportstatus_forced
         return out
 
     def __str__(self):
