@@ -151,9 +151,7 @@ def unpack_meta_rpms(rpmdir, yml, pool, arch, flavor, medium):
     if missing_package and 'ignore_missing_packages' not in yml['build_options']:
         die('Abort due to missing meta packages')
 
-def link_rpms_to_tree(rpmdir, yml, pool, arch, flavor, tree_report, supportstatus, supportstatus_override, debugdir=None, sourcedir=None, cpeid=None, forced_supportstatus=None):
-    if forced_supportstatus is None:
-        forced_supportstatus = set()
+def link_rpms_to_tree(rpmdir, yml, pool, arch, flavor, tree_report, supportstatus, supportstatus_override, debugdir=None, sourcedir=None, cpeid=None):
     singlemode = True
     if 'take_all_available_versions' in yml['build_options']:
         singlemode = False
@@ -212,12 +210,7 @@ def link_rpms_to_tree(rpmdir, yml, pool, arch, flavor, tree_report, supportstatu
                     continue
 
             link_entry_into_dir(tree_report, rpm, rpmdir, add_slsa=add_slsa)
-            if sel.supportstatus_forced:
-                supportstatus[rpm.name] = sel.supportstatus
-                forced_supportstatus.add(rpm.name)
-            elif rpm.name in forced_supportstatus:
-                pass  # forced by an earlier architecture; keep that value
-            elif rpm.name in supportstatus_override:
+            if rpm.name in supportstatus_override:
                 supportstatus[rpm.name] = supportstatus_override[rpm.name]
             else:
                 supportstatus[rpm.name] = sel.supportstatus
@@ -271,3 +264,4 @@ def link_rpms_to_tree(rpmdir, yml, pool, arch, flavor, tree_report, supportstatu
         warn("This medium is not providing any rpm. Only online installation is possible.")
     elif cpeid and not found_matching_cpeid and 'no_product_provides' not in yml['build_options']:
         die(f"Product release file with matching cpeid {cpeid} not found!")
+

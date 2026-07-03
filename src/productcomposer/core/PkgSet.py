@@ -27,41 +27,21 @@ class PkgSet:
             self._create_byname()
         return self.byname
 
-    @staticmethod
-    def _apply_supportstatus(sel, supportstatus, supportstatus_forced):
-        sel.supportstatus = supportstatus
-        sel.supportstatus_forced = supportstatus_forced and supportstatus is not None
-
-    def _merge_duplicate_supportstatus(self, existing, incoming):
-        if existing.supportstatus_forced:
-            return
-        if incoming.supportstatus_forced:
-            self._apply_supportstatus(existing, incoming.supportstatus, True)
-            return
-        if existing.supportstatus is None and incoming.supportstatus is not None:
-            self._apply_supportstatus(existing, incoming.supportstatus, False)
-
     def add_specs(self, specs):
         for spec in specs:
-            sel = PkgSelect(spec, supportstatus=self.supportstatus, supportstatus_forced=self.override_supportstatus)
+            sel = PkgSelect(spec, supportstatus=self.supportstatus)
             self.pkgs.append(sel)
         self.byname = None
 
     def add(self, other):
-        indices = {sel: i for i, sel in enumerate(self.pkgs)}
+        s1 = set(self)
         for sel in other.pkgs:
-            idx = indices.get(sel)
-            if idx is not None:
-                # copy before mutating: the existing selector may be shared with a cached set
-                existing = self.pkgs[idx].copy()
-                self.pkgs[idx] = existing
-                self._merge_duplicate_supportstatus(existing, sel)
-                continue
-            if self.override_supportstatus or (self.supportstatus is not None and sel.supportstatus is None):
-                sel = sel.copy()
-                self._apply_supportstatus(sel, self.supportstatus, self.override_supportstatus)
-            indices[sel] = len(self.pkgs)
-            self.pkgs.append(sel)
+            if sel not in s1:
+                if self.override_supportstatus or (self.supportstatus is not None and sel.supportstatus is None):
+                    sel = sel.copy()
+                    sel.supportstatus = self.supportstatus
+                self.pkgs.append(sel)
+                s1.add(sel)
         self.byname = None
 
     def sub(self, other):
@@ -83,21 +63,17 @@ class PkgSet:
     def intersect(self, other):
         otherbyname = other._byname()
         pkgs = []
-        byisel = {}
+        s1 = set()
+        pkgs = []
         for sel in self.pkgs:
             name = sel.name
             if name not in otherbyname:
                 continue
             for osel in otherbyname[name]:
                 isel = sel.intersect(osel)
-                if not isel:
-                    continue
-                existing = byisel.get(isel)
-                if existing is not None:
-                    self._merge_duplicate_supportstatus(existing, isel)
-                else:
-                    byisel[isel] = isel
+                if isel and isel not in s1:
                     pkgs.append(isel)
+                    s1.add(isel)
         self.pkgs = pkgs
         self.byname = None
 
